@@ -1,0 +1,31 @@
+{
+    "name": "Wingman/Corvus",
+    "version": "1.0.0",
+    "type": "library",
+    "description": "A hierarchical, pattern-matched event bus for the Wingman framework. Routes signals across a dot-namespaced tree with single- and multi-level wildcard support, dispatching to listeners in priority order via a composable middleware pipeline. Features predicate-filtered emission, target-scoped listeners, match-all and historical-replay subscription modes, deferred emission queues with tagging and selective flushing, named-bus registry, cross-bus forwarding, circular-emission guards, and a comprehensive typed exception hierarchy.",
+    "authors": [
+        {
+            "name": "Angel Politis",
+            "email": "info@angelpolitis.com"
+        }
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/angelpolitis/Wingman-Corvus.git"
+    },
+    "homepage": "https://github.com/angelpolitis/Wingman-Corvus",
+    "php": ">=8.1",
+    "dependencies": [
+        {
+            "package": "Wingman/Strux",
+            "version": ">=1.0"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Wingman.Corvus.": "src/",
+            "Wingman.Corvus.Tests.": "tests/"
+        }
+    }
+}

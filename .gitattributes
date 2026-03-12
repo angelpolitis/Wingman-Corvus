@@ -1,0 +1,14 @@
+# Handle line endings automatically for text files
+* text=auto
+
+# Explicitly set PHP and JS files to LF
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+
+# Keep binary files (like images) as they are
+*.png binary
+*.jpg binary
+
+/tests export-ignore
+/.github export-ignore
