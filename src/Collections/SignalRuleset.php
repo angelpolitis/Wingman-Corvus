@@ -10,7 +10,7 @@
     namespace Wingman\Corvus\Collections;
 
     # Import the following classes to the current scope.
-    use Wingman\Corvus\SignalRule;
+    use Wingman\Corvus\Objects\SignalRule;
     use Wingman\Strux\TypedCollection;
 
     /**
