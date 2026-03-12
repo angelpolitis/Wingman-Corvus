@@ -10,7 +10,7 @@
     namespace Wingman\Corvus\Collections;
 
     # Import the following classes to the current scope.
-    use Wingman\Corvus\Handler;
+    use Wingman\Corvus\Objects\Handler;
     use Wingman\Strux\TypedCollection;
 
     /**
