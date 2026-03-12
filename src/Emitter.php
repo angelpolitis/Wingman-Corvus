@@ -3,7 +3,7 @@
 	 * Project Name:    Wingman — Corvus — Emitter
 	 * Created by:      Angel Politis
 	 * Creation Date:   Nov 17 2025
-	 * Last Modified:   Mar 11 2026
+	 * Last Modified:   Mar 12 2026
     /*/
 
     # Use the Corvus namespace.
@@ -11,6 +11,9 @@
 
     # Import the following classes to the current scope.
     use DateTime;
+    use ReflectionException;
+    use ReflectionMethod;
+    use Wingman\Corvus\Attributes\ExcludeFromHistory;
     use Wingman\Corvus\Collections\PredicateCollection;
     use Wingman\Corvus\Collections\TargetCollection;
     use Wingman\Corvus\Interfaces\Identifiable;
@@ -76,6 +79,36 @@
                 $this->id
             );
         }
+        
+        /**
+         * Resolves whether the calling method is decorated with the
+         * ExcludeFromHistory attribute or whether the owning class carries
+         * that attribute at the class level.
+         * @return bool Whether emissions from this context should not be recorded in the Bus history.
+         */
+        protected function isExcludedFromHistory () : bool {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+            $caller = $trace[2] ?? null;
+
+            if ($caller === null || !isset($caller["class"], $caller["function"])) {
+                return false;
+            }
+
+            if (str_contains($caller["function"], "{closure")) {
+                return false;
+            }
+
+            try {
+                $method = new ReflectionMethod($caller["class"], $caller["function"]);
+            }
+            catch (ReflectionException) {
+                return false;
+            }
+
+            if (!empty($method->getAttributes(ExcludeFromHistory::class))) return true;
+
+            return !empty($method->getDeclaringClass()->getAttributes(ExcludeFromHistory::class));
+        }
 
         /**
          * Creates a new emitter.
@@ -93,6 +126,7 @@
         public function emit (array|string ...$signalPatterns) : static {
             Bus::get($this->bus)->registerEmitter($this);
 
+            $excludeFromHistory = $this->isExcludedFromHistory();
             $predicate = Predicate::andAll($this->predicates->getAll());
             $targets = null;
 
@@ -127,7 +161,7 @@
                 $signalPatterns
             );
 
-            Bus::get($this->bus)->dispatchBatch($emissions);
+            Bus::get($this->bus)->dispatchBatch($emissions, $excludeFromHistory);
 
             return $this;
         }

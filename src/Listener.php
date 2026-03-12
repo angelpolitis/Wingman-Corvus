@@ -121,6 +121,19 @@
         protected array $pendingReplays = [];
 
         /**
+         * The debounce window in milliseconds. Zero means no debounce.
+         * @var int
+         */
+        protected int $debounceMs = 0;
+
+        /**
+         * The Unix timestamp in milliseconds of the last activation,
+         * used to enforce the debounce window.
+         * @var int
+         */
+        protected int $lastActivationTime = 0;
+
+        /**
          * Replays up to the last $n historical emissions that match any of the given signal rule's patterns, in chronological order.
          * @param SignalRule $rule A signal rule.
          * @param int $n The maximum number of emissions to replay.
@@ -277,6 +290,19 @@
         }
 
         /**
+         * Sets the debounce window for this listener. Any activation
+         * attempted within $milliseconds of the previous one is silently
+         * dropped.
+         *
+         * @param int $milliseconds The cooldown window in milliseconds.
+         * @return static The listener.
+         */
+        public function debounce (int $milliseconds) : static {
+            $this->debounceMs = $milliseconds;
+            return $this;
+        }
+
+        /**
          * Deregisters the listener from its bus.
          * @return static The listener.
          */
@@ -318,6 +344,14 @@
             }
 
             return $this;
+        }
+
+        /**
+         * Gets the debounce window in milliseconds.
+         * @return int The debounce window in milliseconds.
+         */
+        public function getDebounceMs () : int {
+            return $this->debounceMs;
         }
 
         /**
@@ -479,6 +513,19 @@
         }
 
         /**
+         * Returns whether the listener is currently within its debounce
+         * window and should suppress the next activation.
+         * @return bool Whether the listener is debounced.
+         */
+        public function isDebounced () : bool {
+            if ($this->debounceMs === 0) return false;
+
+            $now = (int) (microtime(true) * 1000);
+
+            return ($now - $this->lastActivationTime) < $this->debounceMs;
+        }
+
+        /**
          * Registers a number of signals and immediately activates the listener with the most recent matching historical emission, if any. Continues listening for future emissions.
          * @param string ...$signals The signals.
          * @return static The listener.
@@ -550,6 +597,14 @@
         public function priority (int $priority) : static {
             $this->priority = $priority;
             return $this;
+        }
+
+        /**
+         * Records the current timestamp as the last activation time,
+         * starting the debounce cooldown window.
+         */
+        public function recordActivationTime () : void {
+            $this->lastActivationTime = (int) (microtime(true) * 1000);
         }
 
         /**

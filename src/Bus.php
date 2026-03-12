@@ -3,7 +3,7 @@
 	 * Project Name:    Wingman — Corvus — Bus
 	 * Created by:      Angel Politis
 	 * Creation Date:   Nov 15 2025
-	 * Last Modified:   Mar 11 2026
+	 * Last Modified:   Mar 12 2026
     /*/
 
     # Use the Corvus namespace.
@@ -202,6 +202,7 @@
             /** @var Listener */
             foreach ($this->findListeners($emission->signal->name) as $listener) {
                 if (!$listener->canBeActivated()) continue;
+                if ($listener->isDebounced()) continue;
 
                 $eligibleRules = $listener->getEligibleSignalRules($emission->signal);
 
@@ -213,6 +214,8 @@
 
                     try {
                         $listener->activate($rule, $emission->targets, $emission->payload);
+                        $listener->recordActivationTime();
+                        $activatedRules[$key] = true;
                     }
                     catch (CircularEmissionException $e) {
                         throw $e;
@@ -220,8 +223,6 @@
                     catch (Throwable $e) {
                         throw new HandlerException($emission->signal->name, $e);
                     }
-
-                    $activatedRules[$key] = true;
 
                     if ($listener->isPropagationStopped()) {
                         $propagationStopped = true;
@@ -510,15 +511,18 @@
          * are emitted in a single call. Each emission is recorded to history before dispatch.
          * Propagation stop in one emission halts the remainder of the batch.
          * @param Emission[] $emissions The emissions to dispatch, in order.
+         * @param bool $excludeFromHistory Whether to skip recording these emissions in history.
          * @return bool Whether propagation was stopped.
          * @throws CircularEmissionException If the dispatch recursion depth exceeds MAX_EMIT_DEPTH.
          * @throws HandlerException If a handler throws an exception during dispatch.
          */
-        public function dispatchBatch (array $emissions) : bool {
+        public function dispatchBatch (array $emissions, bool $excludeFromHistory = false) : bool {
             $activatedRules = [];
 
             foreach ($emissions as $emission) {
-                $this->addToHistory($emission);
+                if (!$excludeFromHistory) {
+                    $this->addToHistory($emission);
+                }
 
                 if ($this->dispatchEmission($emission, $activatedRules)) {
                     return true;
