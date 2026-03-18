@@ -89,7 +89,7 @@ The stopped state is available after activation via `Listener::isPropagationStop
 ```php
 // Authentication gate — placed at high priority to run first.
 Listener::create()
-    ->priority(100)
+    ->setPriority(100)
     ->when("api.request.**")
     ->do(function (HandlerExecution $e) {
         if (!authenticate($e->target)) {

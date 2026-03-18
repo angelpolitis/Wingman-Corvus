@@ -164,8 +164,8 @@ Listener::create()->cap(3)->when("notification.pushed")->do(...);
 Sets the dispatch priority. Listeners with higher values are activated before listeners with lower values. Defaults to `0`.
 
 ```php
-Listener::create()->priority(100)->when("request.received")->do(fn ($e) => authenticate($e));
-Listener::create()->priority(10)->when("request.received")->do(fn ($e) => logRequest($e));
+Listener::create()->setPriority(100)->when("request.received")->do(fn ($e) => authenticate($e));
+Listener::create()->setPriority(10)->when("request.received")->do(fn ($e) => logRequest($e));
 ```
 
 ---

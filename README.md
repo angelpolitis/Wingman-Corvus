@@ -1,4 +1,4 @@
-# Corvus
+# Wingman — Corvus
 
 A hierarchical, pattern-matched event bus for PHP 8.1+. Part of the [Wingman](https://github.com/angelpolitis/wingman) framework, but usable as a standalone library.
 
@@ -177,8 +177,8 @@ Middleware is composable — multiple calls to `pipe()` build a chain where the 
 
 ```php
 // Higher number = runs first.
-Listener::create()->priority(10)->when("app.boot")->do(fn ($e) => loadCache());
-Listener::create()->priority(1)->when("app.boot")->do(fn ($e) => bootModules());
+Listener::create()->setPriority(10)->when("app.boot")->do(fn ($e) => loadCache());
+Listener::create()->setPriority(1)->when("app.boot")->do(fn ($e) => bootModules());
 ```
 
 ---
@@ -284,11 +284,13 @@ use Wingman\Corvus\Interfaces\Exception as CorvusException;
 
 try {
     $emitter->emit("order.placed");
-} catch (HandlerException $e) {
+}
+catch (HandlerException $e) {
     logger()->error("Handler failed for signal {$e->getSignal()}", [
         "cause" => $e->getPrevious(),
     ]);
-} catch (CorvusException $e) {
+}
+catch (CorvusException $e) {
     // Any other Corvus error.
 }
 ```
@@ -307,3 +309,14 @@ See [docs/Exceptions.md](docs/Exceptions.md) for the full exception hierarchy.
 | [docs/Emitter.md](docs/Emitter.md) | Full Emitter API reference |
 | [docs/Middleware.md](docs/Middleware.md) | Middleware pipeline and stop-propagation |
 | [docs/Exceptions.md](docs/Exceptions.md) | Exception hierarchy |
+
+
+---
+
+## Licence
+
+This project is licensed under the **Mozilla Public License 2.0 (MPL 2.0)**.
+
+Wingman Corvus is part of the **Wingman Framework**, Copyright (c) 2025-2026 Angel Politis.
+
+For the full licence text, please see the [LICENSE](LICENSE) file.

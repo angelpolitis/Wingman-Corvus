@@ -3,7 +3,7 @@
     "type": "library",
     "description": "A hierarchical, pattern-matched event bus featuring wildcard signal routing, predicate-filtered emission, target-scoped listeners, and historical replay support for the Wingman framework.",
     "keywords": ["php", "event-bus", "signals", "pub-sub", "events", "listener", "emitter", "wildcard", "wingman"],
-    "license": "MIT",
+    "license": "MPL-2.0",
     "authors": [
         {
             "name": "Angel Politis",
