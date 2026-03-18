@@ -1,10 +1,14 @@
 <?php
-    /*/
-     * Project Name:    Wingman — Corvus — Bus Tests
+    /**
+     * Project Name:    Wingman Corvus - Bus Tests
      * Created by:      Angel Politis
      * Creation Date:   Mar 12 2026
-     * Last Modified:   Mar 12 2026
-    /*/
+     * Last Modified:   Mar 18 2026
+     *
+     * Copyright (c) 2026-2026 Angel Politis <info@angelpolitis.com>
+     * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+     * If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+     */
 
     # Use the Corvus.Tests namespace.
     namespace Wingman\Corvus\Tests;
@@ -127,7 +131,7 @@
         public function testHistoryIsRecordedAfterEmit () : void {
             Emitter::create()->emit("user.created");
 
-            $this->assertEquals(1, Bus::get()->getHistory()->getSize(), "One emission must be in history.");
+            $this->assertEquals(1, Bus::get()->getSignalHistory("user.created")->getSize(), "One emission must be in history.");
         }
 
         #[Define(
@@ -363,14 +367,15 @@
         )]
         public function testMiddlewareIsInvokedOnEveryEmit () : void {
             $calls = 0;
+            $bus  = Bus::get("middleware-test");
 
-            Bus::get()->pipe(function ($emission, callable $next) use (&$calls) {
+            $bus->pipe(function ($emission, callable $next) use (&$calls) {
                 $calls++;
                 $next($emission);
             });
 
-            Emitter::create()->emit("a.signal");
-            Emitter::create()->emit("b.signal");
+            Emitter::create()->useBus("middleware-test")->emit("a.signal");
+            Emitter::create()->useBus("middleware-test")->emit("b.signal");
 
             $this->assertEquals(2, $calls, "Middleware must be called once per emitted signal.");
         }

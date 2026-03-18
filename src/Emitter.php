@@ -1,15 +1,20 @@
 <?php
-    /*/
-	 * Project Name:    Wingman — Corvus — Emitter
-	 * Created by:      Angel Politis
-	 * Creation Date:   Nov 17 2025
-	 * Last Modified:   Mar 12 2026
-    /*/
+    /**
+     * Project Name:    Wingman Corvus - Emitter
+     * Created by:      Angel Politis
+     * Creation Date:   Nov 17 2025
+     * Last Modified:   Mar 18 2026
+     *
+     * Copyright (c) 2025-2026 Angel Politis <info@angelpolitis.com>
+     * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+     * If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+     */
 
     # Use the Corvus namespace.
     namespace Wingman\Corvus;
 
     # Import the following classes to the current scope.
+    use BackedEnum;
     use DateTime;
     use ReflectionException;
     use ReflectionMethod;
@@ -120,11 +125,18 @@
 
         /**
          * Emits all signals matching specified patterns.
-         * @param string|string[] ...$signalPatterns The signal patterns to match against.
+         * @param array|string|BackedEnum ...$signalPatterns The signal patterns to match against.
+         *        String-backed enum cases are automatically coerced to their string value.
          * @return static The emitter.
          */
-        public function emit (array|string ...$signalPatterns) : static {
+        public function emit (array|string|BackedEnum ...$signalPatterns) : static {
             Bus::get($this->bus)->registerEmitter($this);
+
+            # Coerce any string-backed enum cases to their underlying string value.
+            $signalPatterns = array_map(
+                fn ($pattern) => $pattern instanceof BackedEnum ? $pattern->value : $pattern,
+                $signalPatterns
+            );
 
             $excludeFromHistory = $this->isExcludedFromHistory();
             $predicate = Predicate::andAll($this->predicates->getAll());

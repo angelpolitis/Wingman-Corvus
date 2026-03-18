@@ -1,10 +1,14 @@
 <?php
-    /*/
-     * Project Name:    Wingman — Corvus — End-to-End Tests
+    /**
+     * Project Name:    Wingman Corvus - End-to-End Tests
      * Created by:      Angel Politis
      * Creation Date:   Mar 12 2026
-     * Last Modified:   Mar 12 2026
-    /*/
+     * Last Modified:   Mar 18 2026
+     *
+     * Copyright (c) 2026-2026 Angel Politis <info@angelpolitis.com>
+     * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+     * If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+     */
 
     # Use the Corvus.Tests namespace.
     namespace Wingman\Corvus\Tests;
@@ -218,8 +222,8 @@
         public function testPriorityAuthGateStopsSubsequentProcessing () : void {
             $processed = false;
 
-            Listener::create()->priority(100)->when("http.request")->do(fn ($e) => $e->stopPropagation());
-            Listener::create()->priority(1)->when("http.request")->do(function () use (&$processed) { $processed = true; });
+            Listener::create()->setPriority(100)->when("http.request")->do(fn ($e) => $e->stopPropagation());
+            Listener::create()->setPriority(1)->when("http.request")->do(function () use (&$processed) { $processed = true; });
 
             Emitter::create()->emit("http.request");
 
@@ -247,14 +251,15 @@
         )]
         public function testMiddlewareLoggingWrapperObservesEveryDispatch () : void {
             $log = [];
+            $bus = Bus::get("logging-test");
 
-            Bus::get()->pipe(function ($emission, callable $next) use (&$log) {
+            $bus->pipe(function ($emission, callable $next) use (&$log) {
                 $log[] = $emission->signal->name;
                 $next($emission);
             });
 
-            Emitter::create()->emit("app.started");
-            Emitter::create()->emit("app.ready");
+            Emitter::create()->useBus("logging-test")->emit("app.started");
+            Emitter::create()->useBus("logging-test")->emit("app.ready");
 
             $this->assertEquals(["app.started", "app.ready"], $log, "Middleware must record each dispatched signal in order.");
         }

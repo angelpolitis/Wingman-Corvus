@@ -1,15 +1,20 @@
 <?php
-    /*/
-	 * Project Name:    Wingman — Corvus — Listener
-	 * Created by:      Angel Politis
-	 * Creation Date:   Nov 17 2025
-	 * Last Modified:   Mar 11 2026
-    /*/
+    /**
+     * Project Name:    Wingman Corvus - Listener
+     * Created by:      Angel Politis
+     * Creation Date:   Nov 17 2025
+     * Last Modified:   Mar 18 2026
+     *
+     * Copyright (c) 2025-2026 Angel Politis <info@angelpolitis.com>
+     * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+     * If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+     */
 
     # Use the Corvus namespace.
     namespace Wingman\Corvus;
 
     # Import the following classes to the current scope.
+    use BackedEnum;
     use DateTimeImmutable;
     use Wingman\Corvus\Collections\HandlerCollection;
     use Wingman\Corvus\Collections\PredicateCollection;
@@ -132,6 +137,15 @@
          * @var int
          */
         protected int $lastActivationTime = 0;
+
+        /**
+         * Coerces an array of strings and string-backed enum cases to their string values.
+         * @param string|BackedEnum ...$signals The signals to coerce.
+         * @return string[] The resolved string values.
+         */
+        private function coerceSignals (string|BackedEnum ...$signals) : array {
+            return array_map(fn ($signal) => $signal instanceof BackedEnum ? $signal->value : $signal, $signals);
+        }
 
         /**
          * Replays up to the last $n historical emissions that match any of the given signal rule's patterns, in chronological order.
@@ -527,10 +541,11 @@
 
         /**
          * Registers a number of signals and immediately activates the listener with the most recent matching historical emission, if any. Continues listening for future emissions.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function latest (string ...$signals) : static {
+        public function latest (string|BackedEnum ...$signals) : static {
+            $signals = $this->coerceSignals(...$signals);
             $rule = SignalRule::from($signals, SignalMatchType::MATCH_LATEST);
             $this->signalRuleset->add($rule);
             $bus = Bus::get($this->bus);
@@ -558,10 +573,11 @@
 
         /**
          * Specifies a number of signals for a listener to listen for one time.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function once (string ...$signals) : static {
+        public function once (string|BackedEnum ...$signals) : static {
+            $signals = $this->coerceSignals(...$signals);
             $rule = SignalRule::from($signals, SignalMatchType::MATCH_ANY, 1);
             $this->signalRuleset->add($rule);
             Bus::get($this->bus)->register($this, $rule->getPatterns());
@@ -570,10 +586,11 @@
 
         /**
          * Specifies a number of signals for a listener to listen for one time, requiring that all of them are emitted to active.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function onceAll (string ...$signals) : static {
+        public function onceAll (string|BackedEnum ...$signals) : static {
+            $signals = $this->coerceSignals(...$signals);
             $rule = SignalRule::from($signals, SignalMatchType::MATCH_ALL, 1);
             $this->signalRuleset->add($rule);
             Bus::get($this->bus)->register($this, $rule->getPatterns());
@@ -582,21 +599,11 @@
 
         /**
          * Specifies a number of signals for a listener to listen for one time, requiring that any of them are emitted to active.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function onceAny (string ...$signals) : static {
+        public function onceAny (string|BackedEnum ...$signals) : static {
             return $this->once(...$signals);
-        }
-
-        /**
-         * Sets the dispatch priority of the listener. Listeners with higher priority values are activated first.
-         * @param int $priority The priority.
-         * @return static The listener.
-         */
-        public function priority (int $priority) : static {
-            $this->priority = $priority;
-            return $this;
         }
 
         /**
@@ -605,6 +612,16 @@
          */
         public function recordActivationTime () : void {
             $this->lastActivationTime = (int) (microtime(true) * 1000);
+        }
+
+        /**
+         * Sets the dispatch priority of the listener. Listeners with higher priority values are activated first.
+         * @param int $priority The priority.
+         * @return static The listener.
+         */
+        public function setPriority (int $priority) : static {
+            $this->priority = $priority;
+            return $this;
         }
 
         /**
@@ -621,10 +638,11 @@
         /**
          * Registers a number of signals and immediately activates the listener for each of the last $n matching historical emissions. Continues listening for future emissions.
          * @param int $n The number of historical emissions to replay.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function replay (int $n, string ...$signals) : static {
+        public function replay (int $n, string|BackedEnum ...$signals) : static {
+            $signals = $this->coerceSignals(...$signals);
             $rule = SignalRule::from($signals, SignalMatchType::MATCH_REPLAY, $n);
             $this->signalRuleset->add($rule);
             $bus = Bus::get($this->bus);
@@ -652,10 +670,11 @@
 
         /**
          * Registers a number of signals for a listener to listen for, requiring that any of them are emitted to active.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function when (string ...$signals) : static {
+        public function when (string|BackedEnum ...$signals) : static {
+            $signals = $this->coerceSignals(...$signals);
             $rule = SignalRule::from($signals, SignalMatchType::MATCH_ANY);
             $this->signalRuleset->add($rule);
             Bus::get($this->bus)->register($this, $rule->getPatterns());
@@ -664,10 +683,11 @@
 
         /**
          * Registers a number of signals for a listener to listen for, requiring that all of them are emitted to active.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function whenAll (string ...$signals) : static {
+        public function whenAll (string|BackedEnum ...$signals) : static {
+            $signals = $this->coerceSignals(...$signals);
             $rule = SignalRule::from($signals, SignalMatchType::MATCH_ALL);
             $this->signalRuleset->add($rule);
             Bus::get($this->bus)->register($this, $rule->getPatterns());
@@ -676,10 +696,10 @@
 
         /**
          * Registers a number of signals for a listener to listen for, requiring that any of them are emitted to active.
-         * @param string ...$signals The signals.
+         * @param string|BackedEnum ...$signals The signals.
          * @return static The listener.
          */
-        public function whenAny (string ...$signals) : static {
+        public function whenAny (string|BackedEnum ...$signals) : static {
             return $this->when(...$signals);
         }
     }

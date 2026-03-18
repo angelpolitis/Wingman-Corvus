@@ -1,10 +1,14 @@
 <?php
-    /*/
-     * Project Name:    Wingman — Corvus — Listener Tests
+    /**
+     * Project Name:    Wingman Corvus - Listener Tests
      * Created by:      Angel Politis
      * Creation Date:   Mar 12 2026
-     * Last Modified:   Mar 12 2026
-    /*/
+     * Last Modified:   Mar 18 2026
+     *
+     * Copyright (c) 2026-2026 Angel Politis <info@angelpolitis.com>
+     * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+     * If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+     */
 
     # Use the Corvus.Tests namespace.
     namespace Wingman\Corvus\Tests;
@@ -206,8 +210,8 @@
         )]
         public function testHigherPriorityListenerRunsFirst () : void {
             $order = [];
-            Listener::create()->priority(1)->when("ordered.event")->do(function () use (&$order) { $order[] = "low"; });
-            Listener::create()->priority(10)->when("ordered.event")->do(function () use (&$order) { $order[] = "high"; });
+            Listener::create()->setPriority(1)->when("ordered.event")->do(function () use (&$order) { $order[] = "low"; });
+            Listener::create()->setPriority(10)->when("ordered.event")->do(function () use (&$order) { $order[] = "high"; });
 
             Emitter::create()->emit("ordered.event");
 
@@ -268,7 +272,7 @@
             $secondRan = false;
 
             Listener::create()
-                ->priority(10)
+                ->setPriority(10)
                 ->when("guarded.event")
                 ->do(
                     fn ($e) => $e->stopPropagation(),
@@ -287,8 +291,8 @@
         public function testStopPropagationPreventsLowerPriorityListeners () : void {
             $lowHit = false;
 
-            Listener::create()->priority(100)->when("guarded2.event")->do(fn ($e) => $e->stopPropagation());
-            Listener::create()->priority(1)->when("guarded2.event")->do(function () use (&$lowHit) { $lowHit = true; });
+            Listener::create()->setPriority(100)->when("guarded2.event")->do(fn ($e) => $e->stopPropagation());
+            Listener::create()->setPriority(1)->when("guarded2.event")->do(function () use (&$lowHit) { $lowHit = true; });
 
             Emitter::create()->emit("guarded2.event");
 
@@ -445,7 +449,7 @@
             description: "A listener created with priority(42) must return 42 from getPriority()."
         )]
         public function testGetPriorityReturnsAssignedPriority () : void {
-            $listener = Listener::create()->priority(42)->when("x")->do(fn () => null);
+            $listener = Listener::create()->setPriority(42)->when("x")->do(fn () => null);
 
             $this->assertEquals(42, $listener->getPriority(), "getPriority() must return the value passed to priority().");
         }
